@@ -5,6 +5,7 @@
 *.duckdb
 *.db
 *.log.*
+!data/db/sections.db
 
 #--------------------------------------------------#
 # The following was generated with gitignore.nvim: #
