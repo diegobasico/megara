@@ -4,6 +4,7 @@
 
 *.duckdb
 *.db
+*.log.*
 
 #--------------------------------------------------#
 # The following was generated with gitignore.nvim: #

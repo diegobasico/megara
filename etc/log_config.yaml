@@ -1,0 +1,41 @@
+version: 1
+
+formatters:
+  extended:
+    format: "[%(asctime)s] %(levelname)s in %(name)s (%(filename)s - line %(lineno)d):\n%(message)s"
+    datefmt: "%d-%m-%Y %H:%M:%S"
+
+  short:
+    format: "[%(asctime)s] %(name)s - %(levelname)s: %(message)s"
+    datefmt: "%d-%m-%Y %H:%M:%S"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: short
+    stream: ext://sys.stdout
+
+  debug_file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: DEBUG
+    formatter: extended
+    filename: tmp/logs/debug.log
+    when: midnight
+    interval: 1
+    backupCount: 7
+    encoding: UTF-8
+
+  err_file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: WARNING
+    formatter: extended
+    filename: tmp/logs/error.log
+    when: midnight
+    interval: 1
+    backupCount: 7
+    encoding: UTF-8
+
+root:
+  level: DEBUG
+  handlers: [console, debug_file, err_file]
