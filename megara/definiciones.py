@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Optional
+from typing import Optional
 
 
 logging.basicConfig(
@@ -17,82 +17,98 @@ class Steel:
 
 @dataclass
 class Section:
-    name: str
-    A: float  # cm²
-    tw: float  # mm
-    bf: float  # mm
-    tf: float  # mm
-    h: float  # mm  (clear web height)
-    rx: float  # cm
-    ry: float  # cm
+    # ----------------
+    # Required (all)
+    # ----------------
+    shape: str
+    a: float
+    j: float
 
+    # ----------------
+    # Common (optional)
+    # ----------------
+    d: Optional[float] = None
+    k: Optional[float] = None
 
-_section = TypeVar("_section", bound=Section)
+    ix: Optional[float] = None
+    sx: Optional[float] = None
+    rx: Optional[float] = None
+
+    iy: Optional[float] = None
+    sy: Optional[float] = None
+    ry: Optional[float] = None
+
+    cw: Optional[float] = None
+
+    tw: Optional[float] = None
+    bf: Optional[float] = None
+    tf: Optional[float] = None
+    t: Optional[float] = None
+
+    d_af: Optional[float] = None
+    gage: Optional[float] = None
+
+    ro_bar: Optional[float] = None
+    h: Optional[float] = None
+
+    b: Optional[float] = None
+    wt_ft: Optional[float] = None
+
+    zx: Optional[float] = None
+    zy: Optional[float] = None
+
+    # ----------------
+    # WSMHP only
+    # ----------------
+    k1: Optional[float] = None
+    bf_2tf: Optional[float] = None
+    fy: Optional[float] = None
+    d_tw: Optional[float] = None
+    rt: Optional[float] = None
+    wno: Optional[float] = None
+    sw: Optional[float] = None
+    qf: Optional[float] = None
+    qw: Optional[float] = None
+
+    # ----------------
+    # CMC only
+    # ----------------
+    x_bar: Optional[float] = None
+    eo: Optional[float] = None
+
+    # ----------------
+    # Angles only
+    # ----------------
+    x: Optional[float] = None
+    rz: Optional[float] = None
+    tan_a: Optional[float] = None
+
+    # ----------------
+    # Two angles only
+    # ----------------
+    y: Optional[float] = None
+    ry_0: Optional[float] = None
+    ry_3_8: Optional[float] = None
+    ry_3_4: Optional[float] = None
+    qs: Optional[float] = None
+
+    # ----------------
+    # Pipes only
+    # ----------------
+    o_d: Optional[float] = None
+    i_d: Optional[float] = None
+    o_d_t: Optional[float] = None
+    i: Optional[float] = None
+    s: Optional[float] = None
+    r: Optional[float] = None
+    z: Optional[float] = None
+    c: Optional[float] = None
 
 
 @dataclass
-class WSection(Section):
-    # ---------
-    # Geometry
-    # ---------
-
-    d: float  # mm
-    wt: float  # kg/m
-
-
-@dataclass
-class Element(Generic[_section]):
+class Element:
     material: Steel
-    section: _section
+    section: Section
     L: float
     Kx: Optional[float] = None
     Ky: Optional[float] = None
-
-    @property
-    def A(self):
-        return self.section.A
-
-    @property
-    def tw(self):
-        return self.section.tw
-
-    @property
-    def bf(self):
-        return self.section.bf
-
-    @property
-    def tf(self):
-        return self.section.tf
-
-    @property
-    def h(self):
-        return self.section.h
-
-    @property
-    def rx(self):
-        return self.section.rx
-
-    @property
-    def ry(self):
-        return self.section.ry
-
-    @property
-    def Fy(self):
-        return self.material.Fy
-
-    @property
-    def E(self):
-        return self.material.E
-
-
-@dataclass
-class WElement(Element):
-    section: WSection
-
-    @property
-    def d(self):
-        return self.section.d
-
-    @property
-    def wt(self):
-        return self.section.wt
