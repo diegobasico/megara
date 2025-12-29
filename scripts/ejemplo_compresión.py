@@ -1,4 +1,4 @@
-from megara.compresión import ultimate_compression_force, check_slenderness
+from megara.compresión import CompressedElement
 from megara.definiciones import Steel, Element, Section
 from megara.combinaciones import CombinacionCarga
 from megara.secciones import read_wshmp_section
@@ -54,21 +54,22 @@ def ejemplo():
 
     section_data = read_wshmp_section("W10x19")
     W10x19 = Section(**section_data)  # everything in inches
-    print(W10x19.h)
 
     Column_C1 = Element(
-        section=W10x19, material=steel36, L=320 / 2.54, Kx=1.35, Ky=1.00
+        "C-1", section=W10x19, material=steel36, L=320 / 2.54, Kx=1.35, Ky=1.00
     )
 
-    check_slenderness(Column_C1)
+    compressedColumnC1 = CompressedElement(Column_C1)
 
-    Pu = ultimate_compression_force(Column_C1) * 1000 / 2.20462262185  # kip to kg
-
-    print(f"LRFD ultimate force (Pu): {Pu} kg")  # already in kg
+    phi_Pn = compressedColumnC1.phi_Pn * 1000 / 2.20462262185  # kip to kg
 
     combinaciones = CombinacionCarga(D=P_dead, L=P_live)
 
     P = combinaciones.envelope_max[1]  # already in kg
 
-    print(f"LRFD acting force (P) :{P} kg")
-    print(f"Ratio Demanda/Capacidad (R = D/C) = {P / Pu}")
+    compressedColumnC1.show_phi_Pn_curve()
+    compressedColumnC1.save_phi_Pn_curve()
+
+    print(f"LRFD ultimate force (ɸPn): {phi_Pn} kg")  # already in kg
+    print(f"LRFD acting force (Pu) :{P} kg")
+    print(f"Ratio Demanda/Capacidad (R = D/C) = {P / phi_Pn}")

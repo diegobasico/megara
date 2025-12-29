@@ -58,3 +58,4 @@ def ejemplo():
     flexedBeamV1 = FlexedElement(element=Beam_V1, Lb=Lb, cb=cb)
 
     flexedBeamV1.show_Mn_curve()
+    flexedBeamV1.save_Mn_curve()

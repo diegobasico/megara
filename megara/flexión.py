@@ -1,6 +1,5 @@
 import logging
 from enum import Enum
-from pathlib import Path
 from dataclasses import dataclass
 from functools import cached_property
 
@@ -386,26 +385,38 @@ class FlexedElement:
         fig, ax = plt.subplots()
 
         # ---- Regions
-        ax.axvspan(0, self.Lp / 12, alpha=0.15, color="tab:green", label="Plastic")
+        ax.axvspan(
+            0,
+            self.Lp / 12,
+            alpha=0.08,
+            color="black",
+            label="Plastic",
+        )
         ax.axvspan(
             self.Lp / 12,
             self.Lr / 12,
             alpha=0.15,
-            color="tab:orange",
+            color="black",
             label="Inelastic",
         )
-        ax.axvspan(self.Lr / 12, Lb_max, alpha=0.15, color="tab:red", label="Elastic")
+        ax.axvspan(
+            self.Lr / 12,
+            Lb_max,
+            alpha=0.20,
+            color="black",
+            label="Elastic",
+        )
 
         # ---- Curve
-        ax.plot(Lb_vals, Mn_vals, color="purple", linewidth=2, label="_nolegend_")
+        ax.plot(Lb_vals, Mn_vals, color="black", linewidth=2, label="_nolegend_")
 
         # ---- Markers
-        ax.axvline(self.Lp / 12, linestyle="--", color="tab:gray", label="_nolegend_")
-        ax.axvline(self.Lr / 12, linestyle="--", color="tab:gray", label="_nolegend_")
-        ax.axvline(self.Lb / 12, linestyle=":", color="tab:red", label="_nolegend_")
+        ax.axvline(self.Lp / 12, linestyle="--", color="tab:red", label="_nolegend_")
+        ax.axvline(self.Lr / 12, linestyle="--", color="tab:blue", label="_nolegend_")
+        # ax.axvline(self.Lb / 12, linestyle=":", color="tab:red", label="_nolegend_")
 
         # ---- Annotations (unchanged)
-        ax.scatter(self.Lp / 12, 0.9 * self.Mp / 12, zorder=5)
+        ax.scatter(self.Lp / 12, 0.9 * self.Mp / 12, zorder=5, color="red")
         ax.annotate(
             f"ɸMp: {0.9 * self.Mp / 12:.2f}",
             xy=(self.Lp / 12, 0.9 * self.Mp / 12),
@@ -414,14 +425,14 @@ class FlexedElement:
             fontsize=9,
         )
         ax.annotate(
-            f"Lp: {self.Lp / 12:.2f}",
+            f"Lp: {self.Lp / 12:.3f}",
             xy=(self.Lp / 12, 0),
             textcoords="offset points",
             xytext=(5, 5),
             fontsize=9,
         )
 
-        ax.scatter(self.Lr / 12, 0.9 * self.Mr / 12, zorder=5)
+        ax.scatter(self.Lr / 12, 0.9 * self.Mr / 12, zorder=5, color="blue")
         ax.annotate(
             f"ɸMr: {0.9 * self.Mr / 12:.2f}",
             xy=(self.Lr / 12, 0.9 * self.Mr / 12),
@@ -430,16 +441,16 @@ class FlexedElement:
             fontsize=9,
         )
         ax.annotate(
-            f"Lr: {self.Lr / 12:.2f}",
+            f"Lr: {self.Lr / 12:.3f}",
             xy=(self.Lr / 12, 0),
             textcoords="offset points",
             xytext=(5, 5),
             fontsize=9,
         )
 
-        ax.scatter(self.Lb / 12, 0.9 * self.Mn / 12, zorder=6, color="tab:red")
+        ax.scatter(self.Lb / 12, 0.9 * self.Mn / 12, zorder=6, color="black")
         ax.annotate(
-            f"Lb   : {self.Lb / 12:.2f}\nɸMn: {0.9 * self.Mn / 12:.2f}",
+            f"Lb   : {self.Lb / 12:.3f}\nɸMn: {0.9 * self.Mn / 12:.2f}",
             xy=(self.Lb / 12, 0.9 * self.Mn / 12),
             textcoords="offset points",
             xytext=(-60, -45),
