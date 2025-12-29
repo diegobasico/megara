@@ -5,13 +5,10 @@ import numpy as np
 
 from .definiciones import Element
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s: %(message)s",
-)
+logger = logging.getLogger(__name__)
 
 
-class _CompressionValueNeeded(ValueError):
+class CompressionValueNeeded(ValueError):
     pass
 
 
@@ -20,97 +17,97 @@ class _CompressedElement:
     element: Element
 
     @property
-    def h(self):
-        if not self.element.section.h:
-            raise _CompressionValueNeeded(
-                f'Missing parameter "h" for element {self.element.section.shape}'
+    def t(self) -> float:
+        if not self.element.section.t:
+            raise CompressionValueNeeded(
+                f'Missing parameter "t" for element {self.element.section.shape}'
             )
-        return self.element.section.h
+        return self.element.section.t
 
     @property
-    def tw(self):
+    def tw(self) -> float:
         if not self.element.section.tw:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "tw" for element {self.element.section.shape}'
             )
         return self.element.section.tw
 
     @property
-    def bf(self):
+    def bf(self) -> float:
         if not self.element.section.bf:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "bf" for element {self.element.section.shape}'
             )
         return self.element.section.bf
 
     @property
-    def rx(self):
+    def rx(self) -> float:
         if not self.element.section.rx:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "rx" for element {self.element.section.shape}'
             )
         return self.element.section.rx
 
     @property
-    def ry(self):
+    def ry(self) -> float:
         if not self.element.section.ry:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "ry" for element {self.element.section.shape}'
             )
         return self.element.section.ry
 
     @property
-    def A(self):
+    def A(self) -> float:
         if not self.element.section.a:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "A" for element {self.element.section.shape}'
             )
         return self.element.section.a
 
     @property
-    def tf(self):
+    def tf(self) -> float:
         if not self.element.section.tf:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "tf" for element {self.element.section.shape}'
             )
         return self.element.section.tf
 
     @property
-    def Kx(self):
+    def Kx(self) -> float:
         if not self.element.Kx:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "Kx" for element {self.element.section.shape}'
             )
         return self.element.Kx
 
     @property
-    def Ky(self):
+    def Ky(self) -> float:
         if not self.element.Ky:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "Ky" for element {self.element.section.shape}'
             )
         return self.element.Ky
 
     @property
-    def E(self):
+    def E(self) -> float:
         if not self.element.material.E:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "E" for element {self.element.section.shape}'
             )
         return self.element.material.E
 
     @property
-    def Fy(self):
+    def Fy(self) -> float:
         if not self.element.material.Fy:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "Fy" for element {self.element.section.shape}'
             )
         return self.element.material.Fy
 
     @property
-    def L(self):
+    def L(self) -> float:
         if not self.element.L:
-            raise _CompressionValueNeeded(
+            raise CompressionValueNeeded(
                 f'Missing parameter "L" for element {self.element.section.shape}'
             )
         return self.element.L
@@ -123,29 +120,29 @@ class _CompressedElement:
         # Table B4.1a, AISC 360 - 16
         # web    : λ = h / tw = d - 2k_des / tw
         # flange : λ = b / t = 0.5 * bf / tf = bf/(2 * tf)
-        lambda_web = self.h / self.tw
+        lambda_web = self.t / self.tw
         lambda_flange = self.bf / (2 * self.tf)
 
         lambda_r_web = 1.49 * np.sqrt(self.E / self.Fy)
         lambda_r_flange = 0.56 * np.sqrt(self.E / self.Fy)
 
         if lambda_flange < lambda_r_flange and lambda_web < lambda_r_web:
-            logging.info("El selfo no es esbelto localmente ✅.")
-            return False
-        else:
-            logging.error("El selfo es esbelto localmente ⛔.")
+            logging.info("El elemento no es esbelto localmente ✅.")
             return True
+        else:
+            logging.warning("El elemento es esbelto localmente ⛔.")
+            return False
 
     def check_global_slenderness(self) -> bool:
         global_slenderness_x = self.Kx * self.L / self.rx
         global_slenderness_y = self.Ky * self.L / self.ry
 
         if global_slenderness_x < 200 and global_slenderness_y < 200:
-            logging.info("El selfo no es esbelto globalmente ✅.")
-            return False
-        else:
-            logging.error("El selfo es esbelto globalmente ⛔.")
+            logging.info("El elemento no es esbelto globalmente ✅.")
             return True
+        else:
+            logging.error("El elemento es esbelto globalmente ⛔.")
+            return False
 
     # ----------------
     # Buckling
@@ -195,7 +192,8 @@ class _CompressedElement:
         return Pu
 
     def check_slenderness(self) -> float:
-        if self.check_global_slenderness() and self.check_local_slenderness():
+        not_slender = self.check_global_slenderness() and self.check_local_slenderness()
+        if not_slender:
             return True
         return False
 
@@ -203,6 +201,17 @@ class _CompressedElement:
 def ultimate_compression_force(compressed_element: Element) -> float:
     element = _CompressedElement(compressed_element)
     return element.compression_resistent_force()
+
+
+def check_slenderness(compressed_element: Element) -> float:
+    element = _CompressedElement(compressed_element)
+    not_slender = (
+        element.check_global_slenderness() and element.check_local_slenderness()
+    )
+    if not_slender:
+        return True
+    logger.info("Element is not slender")
+    return False
 
 
 if __name__ == "__main__":

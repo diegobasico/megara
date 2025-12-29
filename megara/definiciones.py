@@ -107,6 +107,7 @@ class Section:
 
 @dataclass
 class Element:
+    name: str
     material: Steel
     section: Section
     L: float

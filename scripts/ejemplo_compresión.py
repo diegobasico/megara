@@ -1,4 +1,4 @@
-from megara.compresión import ultimate_compression_force
+from megara.compresión import ultimate_compression_force, check_slenderness
 from megara.definiciones import Steel, Element, Section
 from megara.combinaciones import CombinacionCarga
 from megara.secciones import read_wshmp_section
@@ -54,10 +54,13 @@ def ejemplo():
 
     section_data = read_wshmp_section("W10x19")
     W10x19 = Section(**section_data)  # everything in inches
+    print(W10x19.h)
 
     Column_C1 = Element(
         section=W10x19, material=steel36, L=320 / 2.54, Kx=1.35, Ky=1.00
     )
+
+    check_slenderness(Column_C1)
 
     Pu = ultimate_compression_force(Column_C1) * 1000 / 2.20462262185  # kip to kg
 

@@ -26,6 +26,16 @@ handlers:
     backupCount: 7
     encoding: UTF-8
 
+  info_file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: short
+    filename: tmp/logs/info.log
+    when: midnight
+    interval: 1
+    backupCount: 7
+    encoding: UTF-8
+
   err_file:
     class: logging.handlers.TimedRotatingFileHandler
     level: WARNING
@@ -38,4 +48,4 @@ handlers:
 
 root:
   level: DEBUG
-  handlers: [console, debug_file, err_file]
+  handlers: [console, debug_file, info_file, err_file]
