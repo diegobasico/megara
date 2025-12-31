@@ -26,8 +26,6 @@ class Slenderness(Enum):
 @dataclass(frozen=True)
 class ShearedElement:
     element: Element
-    Lb: float
-    cb: float
 
     # ----------------
     # Section geometry
