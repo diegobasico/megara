@@ -131,6 +131,16 @@ class FlexedElement:
         return self.element.section.j
 
     @cached_property
+    def ix(self) -> float:
+        if not self.element.section.ix:
+            logger.error("Missing ix")
+            raise FlexureValueNeeded(
+                f'Missing parameter "ix" for element {self.element.section.shape}.'
+            )
+        logger.info(f"ix : {self.element.section.ix}")
+        return self.element.section.ix
+
+    @cached_property
     def iy(self) -> float:
         if not self.element.section.iy:
             logger.error("Missing iy")
@@ -211,7 +221,25 @@ class FlexedElement:
     # ----------------
 
     @cached_property
-    def _lambda(self) -> float:
+    def _lambda_w(self) -> float:
+        _lambda = self.h / self.tw
+        logger.info(f"λ_w : {_lambda}")
+        return _lambda
+
+    @cached_property
+    def lambda_pw(self) -> float:
+        lambda_pw = 3.76 * np.sqrt(self.E / self.Fy)
+        logger.info(f"λ_pf : {lambda_pw}")
+        return lambda_pw
+
+    @cached_property
+    def lambda_rw(self) -> float:
+        lambda_rw = 5.70 * np.sqrt(self.E / self.Fy)
+        logger.info(f"λ_rf : {lambda_rw}")
+        return lambda_rw
+
+    @cached_property
+    def _lambda_f(self) -> float:
         _lambda = self.bf / (2 * self.tf)
         logger.info(f"λ_f : {_lambda}")
         return _lambda
@@ -230,22 +258,23 @@ class FlexedElement:
 
     @cached_property
     def slenderness(self) -> Slenderness:
-        if self._lambda <= self.lambda_pf:
+        if self._lambda_f <= self.lambda_pf and self._lambda_w <= self.lambda_pw:
             logger.info("slenderness : compact")
             return Slenderness.compact
-        elif self._lambda <= self.lambda_rf:
+        elif self._lambda_f <= self.lambda_rf and self._lambda_w <= self.lambda_rw:
             logger.info("slenderness : non-compact")
             return Slenderness.noncompact
         else:
             logger.info("slenderness : slender")
             return Slenderness.slender
 
-    # if compact, go to design by flexure
+    # if compact, design by flexure
 
     @cached_property
     def noncompact_Mn(self) -> float:
+        _lambda = max(self._lambda_w, self._lambda_f)
         value = self.Mp - (self.Mp - 0.7 * self.Fy * self.sx) * (
-            self._lambda - self.lambda_pf
+            _lambda - self.lambda_pf
         ) / (self.lambda_rf - self.lambda_pf)
         return value
 
@@ -257,7 +286,8 @@ class FlexedElement:
 
     @cached_property
     def slender_Mn(self) -> float:
-        return 0.9 * self.E * self.kc * self.sx / (self._lambda**2)
+        _lambda = max(self._lambda_w, self._lambda_f)
+        return 0.9 * self.E * self.kc * self.sx / (_lambda**2)
 
     # ----------------
     # Flexure
@@ -364,10 +394,49 @@ class FlexedElement:
         return value
 
     # ----------------
+    # Deflexión
+    # ----------------
+    def max_deflection(self, w: float) -> float:
+        return (5 / 384) * (w * self.L**4 / (self.E * self.ix))
+
+    @cached_property
+    def live_deflection_limit(self) -> float:
+        logger.info(f"Deflection limit for live load: {self.L / 360}")
+        return self.L / 360
+
+    @cached_property
+    def dead_live_deflection_limit(self) -> float:
+        logger.info(f"Deflection limit for dead + live load: {self.L / 240}")
+        return self.L / 240
+
+    def deflection_test(self, dead: float, live: float) -> bool:
+        live_deflection = self.max_deflection(live)
+        logger.info(f"Deflection for live load: {live_deflection}")
+        logger.info(
+            f"Deflection R for live load: {live_deflection / self.live_deflection_limit}"
+        )
+
+        dead_live_deflection = self.max_deflection(dead + live)
+        logger.info(f"Deflection for dead + live load: {dead_live_deflection}")
+        logger.info(
+            f"Deflection R for dead + live load: {dead_live_deflection / self.dead_live_deflection_limit}"
+        )
+
+        if (
+            live_deflection < self.live_deflection_limit
+            and dead_live_deflection < self.dead_live_deflection_limit
+        ):
+            logger.info(">> Deflection test passed.")
+            return True
+        else:
+            logger.info(">> Deflection test failed.")
+            return False
+
+    # ----------------
     # Plot
     # ----------------
 
-    @property
+    @cached_property
     def _Mn_figure(self):
         Lb_max = 30
         n = 360
