@@ -532,13 +532,15 @@ class FlexedElement:
 
         ax.set_xlim(0, 30)
         ax.set_ylim(0, 80)
-        ax.set_xlabel("Unbraced Length, Lb (ft)")
-        ax.set_ylabel("Available Moment, ɸMn (kip-ft)")
+        ax.set_xlabel("Unbraced Length, $Lb$ $($ft)$")
+        ax.set_ylabel(r"Available Moment, $\phi M_n$ $(kip-ft)$")
         ax.grid(True)
         ax.legend()
 
         fig.suptitle(
-            f"Plot of Available Moment (ɸMn) vs\nUnbraced Length (Lb) for {self.element.name} ({self.shape})"
+            r"Plot of Available Moment ($\phi M_n$) vs"
+            "\n"
+            rf"Unbraced Length ($L_b$) for {self.element.name} ({self.shape})"
         )
 
         return fig, ax
@@ -552,7 +554,7 @@ class FlexedElement:
         dpi: int = 300,
     ):
         fig, _ = self._Mn_figure
-        path = local_paths.cache / self.element.name
+        path = local_paths.cache / f"{self.element.name}_flexure.png"
         fig.savefig(path, dpi=dpi, bbox_inches="tight")
         plt.close(fig)
 

@@ -71,3 +71,7 @@ def ejemplo():
         dead * ancho_tributario / 1000 * 2.2046226218 / 100 * 2.54,  # kg/m to kip/in
         live * ancho_tributario / 1000 * 2.2046226218 / 100 * 2.54,  # kg/m to kip/in
     )
+
+    sheared_beam = ShearedElement(element=element)
+
+    sheared_beam.show_Vn_curve()
