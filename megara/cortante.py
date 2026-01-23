@@ -118,7 +118,7 @@ class ShearedElement:
             value = 2.24 * np.sqrt(self.E / self.Fy)
             # HACK: the correct formula should be:
             # value = 1.10 * np.sqrt(self.kv * self.E / self.Fy)
-            # but AISC changed it to 2.24, which is higer,
+            # but AISC changed it to 2.24, which is higher,
             # for some reason that I haven't understood yet;
             # this draws a non-continuous function with a peak
             # on the edge case h/wt = lambda_r
