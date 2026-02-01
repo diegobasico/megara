@@ -26,6 +26,8 @@ class ShearedElement:
 
     element: Element
     a: float | None = None
+    Mu: float | None = None
+    ejes_arriostres_laterales: float | None = None
 
     # ----------------
     # Section geometry
@@ -78,6 +80,36 @@ class ShearedElement:
         logger.info(f"tw : {self.element.section.tw}")
         return self.element.section.tw
 
+    @cached_property
+    def bf(self) -> float:
+        if not self.element.section.bf:
+            logger.error("Missing bf")
+            raise ShearValueNeeded(
+                f'Missing parameter "bf" for element {self.element.section.shape}.'
+            )
+        logger.info(f"bf : {self.element.section.bf}")
+        return self.element.section.bf
+
+    @cached_property
+    def tf(self) -> float:
+        if not self.element.section.tf:
+            logger.error("Missing tf")
+            raise ShearValueNeeded(
+                f'Missing parameter "tf" for element {self.element.section.shape}.'
+            )
+        logger.info(f"tf : {self.element.section.tf}")
+        return self.element.section.tf
+
+    @cached_property
+    def zx(self) -> float:
+        if not self.element.section.zx:
+            logger.error("Missing zx")
+            raise ShearValueNeeded(
+                f'Missing parameter "zx" for element {self.element.section.shape}.'
+            )
+        logger.info(f"tw : {self.element.section.zx}")
+        return self.element.section.zx
+
     # ----------------
     # Material
     # ----------------
@@ -115,11 +147,11 @@ class ShearedElement:
     @cached_property
     def _lambda_r(self) -> float:
         if self.shape[0] in ("W", "S", "M", "H"):
-            value = 2.24 * np.sqrt(self.E / self.Fy)
-            # HACK: the correct formula should be:
-            # value = 1.10 * np.sqrt(self.kv * self.E / self.Fy)
-            # but AISC changed it to 2.24, which is higher,
-            # for some reason that I haven't understood yet;
+            value = 1.10 * np.sqrt(self.kv * self.E / self.Fy)
+            # HACK: this is the correct formula,
+            # AISC changed it to 2.24 as in:
+            # value = 2.24 * np.sqrt(self.E / self.Fy)
+            # which is higher, for some reason that I haven't understood yet;
             # this draws a non-continuous function with a peak
             # on the edge case h/wt = lambda_r
         elif self.shape[0] in ("C"):
@@ -161,7 +193,7 @@ class ShearedElement:
     def Vn(self) -> float:
         if self.a is not None and self.a / self.h <= 3:
             raise NotImplementedError(
-                "Tension field action (AISC G2.2) not implemented"
+                "Tension field action (AISC G2.2) not implemented."
             )
 
         value = 0.6 * self.Fy * self.Aw * self.cv
@@ -182,6 +214,42 @@ class ShearedElement:
     @cached_property
     def phi_Vn(self) -> float:
         return self.Vn * self.phi
+
+    # ----------------
+    # Rigidizadores
+    # ----------------
+
+    # Not implemented yet
+
+    # ----------------
+    # Rigidizadores
+    # ----------------
+
+    @cached_property
+    def arriostre_lateral_d(self) -> float:
+        logger.info(f"Mínimo peralte del arriostre lateral: {self.element.section.zx}")
+        return self.d / 3
+
+    @cached_property
+    def F_br(self) -> float:
+        if not self.Mu:
+            logger.error("Missing Mu.")
+            raise ShearValueNeeded(
+                "Missing ultimate force to calculate lateral bracing."
+            )
+
+        if not self.ejes_arriostres_laterales:
+            logger.error("Missing # of lateral bracing axes.")
+            raise ShearValueNeeded("Missing number of lateral bracing axes.")
+
+        fc = self.Mu / self.zx  # esfuerzo a compresión en el ala
+        Af = self.bf * self.tf  # área comprimida (área del ala)
+        C = fc * Af  # fuerza de compresión en el ala
+        Pf = C / self.ejes_arriostres_laterales
+        # ^^^ I think it should always be 2, but whatever
+        Fbr = Pf * 0.02
+        logger.info(f"Fuerza aplicada como compresión al arriostre: {Fbr}")
+        return Fbr
 
     # ----------------
     # Plot

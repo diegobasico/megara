@@ -45,7 +45,7 @@ def ejemplo():
     element = Element("B-1", material, section, largo_viga * 100 / 2.54)
     Lb = 200 / 2.54 / 12  # 3 arriostres, en inches
     flexed_element = FlexedElement(element, Lb, 1)  # debería ser cb = 1.01 :shrug:
-    flexed_element.save_Mn_curve()
+    flexed_element.show_Mn_curve()
 
     phi_Mn = flexed_element.phi_Mn / 12  # kip-ft
 
